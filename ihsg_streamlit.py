@@ -46,21 +46,48 @@ with tab1:
 with tab2:
     st.dataframe(df_filter, use_container_width=True)
 
-# Render AI Assistant interface simulation
+import google.generativeai as genai
+
 with tab3:
-    st.markdown("**Simulasi AI Financial Assistant**")
+    st.markdown("**AI Financial Assistant**")
     
-    # Initialize system greeting
+    # Konfigurasi API Key dari Streamlit Secrets
+    try:
+        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+        model = genai.GenerativeModel('gemini-3.1-flash-lite')
+    except Exception as e:
+        st.warning("API Key belum dikonfigurasi di Streamlit Secrets.")
+        model = None
+
+    # Inisialisasi percakapan
     with st.chat_message("assistant"):
         st.write("Halo. Saya asisten data Anda. Ada yang ingin dianalisis dari tren IHSG ini?")
         
     prompt = st.chat_input("Ketik pertanyaan Anda di sini...")
     
-    if prompt:
-        # Render user prompt
+    if prompt and model:
+        # Menampilkan pertanyaan user
         with st.chat_message("user"):
             st.write(prompt)
             
-        # Render simulated AI response
+        # Merakit konteks data (Prompt Engineering)
+        # Kita titipkan data ringkas dari dataframe ke dalam instruksi tersembunyi
+        konteks_tersembunyi = f"""
+        Kamu adalah AI analis finansial profesional. Jawab pertanyaan user berdasarkan data IHSG berikut:
+        - Rentang waktu: {pilihan_tahun[0]} hingga {pilihan_tahun[1]}
+        - Harga tertinggi periode ini: Rp {df_filter['Close'].max():,.0f}
+        - Harga terendah periode ini: Rp {df_filter['Close'].min():,.0f}
+        - Harga penutupan terakhir: Rp {df_filter['Close'].iloc[-1]:,.0f}
+        
+        Gunakan bahasa profesional yang ringkas. Jangan membuat asumsi data di luar konteks ini.
+        Pertanyaan user: {prompt}
+        """
+        
+        # Memanggil AI dan merender jawabannya
         with st.chat_message("assistant"):
-            st.write(f"*(Simulasi respons sistem)* Anda bertanya: '{prompt}'. Endpoint API LLM dapat diintegrasikan pada blok fungsi ini.")
+            with st.spinner("Menganalisis data..."):
+                try:
+                    respons = model.generate_content(konteks_tersembunyi)
+                    st.write(respons.text)
+                except Exception as e:
+                    st.error("Terjadi kesalahan saat menghubungi server AI.")
