@@ -8,7 +8,7 @@ st.title("Dashboard Analisis Historis IHSG")
 st.markdown("Visualisasi pergerakan Indeks Harga Saham Gabungan (IHSG).")
 
 # Data loading and preprocessing
-df = pd.read_csv("nama_file_ihsg.csv") # Note: Update filename accordingly
+df = pd.read_csv("ihsg_daily.csv") # Note: Update filename accordingly
 df['Date'] = pd.to_datetime(df['Date'])
 
 # Define dynamic date range for filtering
