@@ -1,20 +1,34 @@
 import streamlit as st
 import pandas as pd
 
-# Halaman penuh
 st.set_page_config(page_title="IHSG Analytics", layout="wide")
 
-# Header
 st.title("Dashboard Analisis Historis IHSG")
-st.markdown("Visualisasi pergerakan Indeks Harga Saham Gabungan (IHSG) berdasarkan dataset historis harian untuk keperluan peninjauan tren pasar.")
+st.markdown("Visualisasi pergerakan Indeks Harga Saham Gabungan (IHSG). Gunakan slider di bawah untuk menyesuaikan rentang waktu analisis.")
 
-# Panggil data
+# Panggil Data
 df = pd.read_csv("ihsg_daily.csv") 
 
-# Tampilan grafik
-st.subheader("Tren Harga Penutupan (Close Price)")
-st.line_chart(df['Close']) 
+# Ubah kolom tanggal jadi tipe Datetime biar bisa difilter
+df['Date'] = pd.to_datetime(df['Date'])
 
-# Tampilan tabel data
-st.subheader("Tabel Data Historis")
-st.dataframe(df, use_container_width=True)
+# Fitur slider
+tahun_awal = int(df['Date'].dt.year.min())
+tahun_akhir = int(df['Date'].dt.year.max())
+
+# Set dari tahun 2020
+pilihan_tahun = st.slider("Pilih Rentang Tahun Analisis:", 
+                          min_value=tahun_awal, 
+                          max_value=tahun_akhir, 
+                          value=(2020, tahun_akhir))
+
+# Filter data berdasarkan tahun yang dipilih di slider
+df_filter = df[(df['Date'].dt.year >= pilihan_tahun[0]) & (df['Date'].dt.year <= pilihan_tahun[1])]
+
+# Tampilan grafik
+st.subheader(f"Tren Harga Penutupan ({pilihan_tahun[0]} - {pilihan_tahun[1]})")
+st.line_chart(df_filter.set_index('Date')['Close']) 
+
+# Tampilan tabel
+st.subheader("Tabel Data Historis Terfilter")
+st.dataframe(df_filter, use_container_width=True)
