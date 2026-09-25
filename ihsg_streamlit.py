@@ -5,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="IHSG Analytics", layout="wide")
 
 # Header
-st.title("📈 Dashboard Analisis Historis IHSG")
+st.title("Dashboard Analisis Historis IHSG")
 st.markdown("Visualisasi pergerakan Indeks Harga Saham Gabungan (IHSG) berdasarkan dataset historis harian untuk keperluan peninjauan tren pasar.")
 
 # Panggil data
