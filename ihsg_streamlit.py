@@ -8,7 +8,7 @@ st.title("Dashboard Analisis Historis IHSG")
 st.markdown("Visualisasi pergerakan Indeks Harga Saham Gabungan (IHSG).")
 
 # Data loading and preprocessing
-df = pd.read_csv("ihsg_daily.csv") # Note: Update filename accordingly
+df = pd.read_csv("nama_file_ihsg.csv") # Note: Update filename accordingly
 df['Date'] = pd.to_datetime(df['Date'])
 
 # Define dynamic date range for filtering
@@ -35,8 +35,8 @@ with col3:
 
 st.divider()
 
-# Initialize UI navigation tabs
-tab1, tab2, tab3 = st.tabs(["Grafik Tren", "Data Mentah", "Tanya AI"])
+# Initialize UI navigation tabs (Tanpa tab AI)
+tab1, tab2 = st.tabs(["Grafik Tren", "Data Mentah"])
 
 # Render primary line chart
 with tab1:
@@ -45,49 +45,3 @@ with tab1:
 # Render raw dataframe table
 with tab2:
     st.dataframe(df_filter, use_container_width=True)
-
-import google.generativeai as genai
-
-with tab3:
-    st.markdown("**AI Financial Assistant**")
-    
-    # Konfigurasi API Key dari Streamlit Secrets
-    try:
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        model = genai.GenerativeModel('gemini-3.1-flash-lite')
-    except Exception as e:
-        st.warning("API Key belum dikonfigurasi di Streamlit Secrets.")
-        model = None
-
-    # Inisialisasi percakapan
-    with st.chat_message("assistant"):
-        st.write("Halo. Saya asisten data Anda. Ada yang ingin dianalisis dari tren IHSG ini?")
-        
-    prompt = st.chat_input("Ketik pertanyaan Anda di sini...")
-    
-    if prompt and model:
-        # Menampilkan pertanyaan user
-        with st.chat_message("user"):
-            st.write(prompt)
-            
-        # Merakit konteks data (Prompt Engineering)
-        # Kita titipkan data ringkas dari dataframe ke dalam instruksi tersembunyi
-        konteks_tersembunyi = f"""
-        Kamu adalah AI analis finansial profesional. Jawab pertanyaan user berdasarkan data IHSG berikut:
-        - Rentang waktu: {pilihan_tahun[0]} hingga {pilihan_tahun[1]}
-        - Harga tertinggi periode ini: Rp {df_filter['Close'].max():,.0f}
-        - Harga terendah periode ini: Rp {df_filter['Close'].min():,.0f}
-        - Harga penutupan terakhir: Rp {df_filter['Close'].iloc[-1]:,.0f}
-        
-        Gunakan bahasa profesional yang ringkas. Jangan membuat asumsi data di luar konteks ini.
-        Pertanyaan user: {prompt}
-        """
-        
-        # Memanggil AI dan merender jawabannya
-        with st.chat_message("assistant"):
-            with st.spinner("Menganalisis data..."):
-                try:
-                    respons = model.generate_content(konteks_tersembunyi)
-                    st.write(respons.text)
-                except Exception as e:
-                    st.error("Terjadi kesalahan saat menghubungi server AI.")
